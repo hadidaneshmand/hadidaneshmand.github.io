@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Can Transformers Sort? — AISTATS 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0d1b2a;
+    --ink: #1a2e42;
+    --slate: #2c4a6e;
+    --blue: #2563eb;
+    --sky: #60a5fa;
+    --gold: #f59e0b;
+    --cream: #faf8f4;
+    --warm: #f0ebe3;
+    --text: #1a1a2e;
+    --muted: #64748b;
+    --border: #d4cfc8;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--text);
+    overflow-x: hidden;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    background: var(--navy);
+    color: white;
+    min-height: 100vh;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 70% 40%, rgba(37,99,235,0.18) 0%, transparent 70%),
+      radial-gradient(ellipse 50% 40% at 20% 80%, rgba(245,158,11,0.10) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  /* Grid texture */
+  .hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+  }
+
+  nav {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 4rem;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.8rem;
+    color: rgba(255,255,255,0.5);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .nav-badge {
+    background: var(--gold);
+    color: var(--navy);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 500;
+    padding: 0.2rem 0.6rem;
+    border-radius: 2px;
+    letter-spacing: 0.1em;
+  }
+
+  .nav-links { display: flex; gap: 2rem; }
+  .nav-links a {
+    color: rgba(255,255,255,0.6);
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 300;
+    letter-spacing: 0.04em;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: white; }
+
+  .hero-body {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 4rem 4rem 2rem;
+    max-width: 1100px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  .conference-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    color: var(--sky);
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .conference-tag::before {
+    content: '';
+    display: block;
+    width: 2rem;
+    height: 1px;
+    background: var(--sky);
+  }
+
+  h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(2.4rem, 5vw, 4rem);
+    line-height: 1.1;
+    font-weight: 400;
+    margin-bottom: 2rem;
+    max-width: 18ch;
+  }
+
+  h1 em {
+    font-style: italic;
+    color: var(--sky);
+  }
+
+  .author-block {
+    margin-bottom: 2.5rem;
+  }
+
+  .author-name {
+    font-size: 1.1rem;
+    font-weight: 400;
+    color: rgba(255,255,255,0.9);
+    margin-bottom: 0.3rem;
+  }
+
+  .author-affil {
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.45);
+    font-weight: 300;
+    letter-spacing: 0.03em;
+  }
+
+  .cta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 4rem;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1.4rem;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-decoration: none;
+    letter-spacing: 0.03em;
+    transition: all 0.2s;
+    cursor: pointer;
+    border: none;
+  }
+
+  .btn-primary {
+    background: var(--blue);
+    color: white;
+  }
+  .btn-primary:hover { background: #1d4ed8; transform: translateY(-1px); }
+
+  .btn-outline {
+    background: transparent;
+    color: rgba(255,255,255,0.8);
+    border: 1px solid rgba(255,255,255,0.2);
+  }
+  .btn-outline:hover {
+    border-color: rgba(255,255,255,0.5);
+    color: white;
+    transform: translateY(-1px);
+  }
+
+  .btn-gold {
+    background: var(--gold);
+    color: var(--navy);
+  }
+  .btn-gold:hover { background: #d97706; transform: translateY(-1px); }
+
+  .hero-footer {
+    position: relative;
+    z-index: 10;
+    padding: 1.5rem 4rem;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    display: flex;
+    gap: 3rem;
+    max-width: 1100px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  .hero-stat { }
+  .hero-stat .num {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.8rem;
+    color: white;
+    display: block;
+  }
+  .hero-stat .label {
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.4);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* ── SECTION ── */
+  section {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 5rem 4rem;
+  }
+
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--blue);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .section-label::before {
+    content: '';
+    display: block;
+    width: 1.5rem;
+    height: 1px;
+    background: var(--blue);
+  }
+
+  h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(1.8rem, 3vw, 2.6rem);
+    font-weight: 400;
+    line-height: 1.2;
+    margin-bottom: 1.5rem;
+    color: var(--ink);
+  }
+
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 0;
+  }
+
+  /* ── ABSTRACT ── */
+  .abstract-section {
+    background: white;
+    border-radius: 0;
+    border-top: 3px solid var(--blue);
+  }
+
+  .abstract-section section {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 4rem;
+    align-items: start;
+  }
+
+  .abstract-text {
+    font-size: 1.05rem;
+    line-height: 1.85;
+    color: #334155;
+    font-weight: 300;
+  }
+
+  .abstract-text strong {
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  /* ── CONTRIBUTIONS ── */
+  .contrib-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5px;
+    background: var(--border);
+    border: 1.5px solid var(--border);
+    margin-top: 2.5rem;
+  }
+
+  .contrib-card {
+    background: white;
+    padding: 2rem;
+    position: relative;
+    transition: background 0.2s;
+  }
+  .contrib-card:hover { background: #f8faff; }
+
+  .contrib-num {
+    font-family: 'DM Serif Display', serif;
+    font-size: 3rem;
+    color: #e8eef8;
+    line-height: 1;
+    margin-bottom: 0.75rem;
+    display: block;
+  }
+
+  .contrib-title {
+    font-size: 0.8rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--blue);
+    margin-bottom: 0.75rem;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .contrib-desc {
+    font-size: 0.92rem;
+    line-height: 1.65;
+    color: #475569;
+    font-weight: 300;
+  }
+
+  /* ── THEOREM ── */
+  .theorem-block {
+    background: var(--navy);
+    color: white;
+    padding: 2.5rem 3rem;
+    margin: 2rem 0;
+    position: relative;
+    border-left: 3px solid var(--sky);
+  }
+
+  .theorem-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--sky);
+    margin-bottom: 1rem;
+  }
+
+  .theorem-text {
+    font-family: 'DM Serif Display', serif;
+    font-style: italic;
+    font-size: 1.1rem;
+    line-height: 1.7;
+    color: rgba(255,255,255,0.9);
+    margin-bottom: 1.5rem;
+  }
+
+  .theorem-formula {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    padding: 1rem 1.5rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.95rem;
+    color: var(--gold);
+    display: inline-block;
+    border-radius: 2px;
+  }
+
+  .remarks {
+    margin-top: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .remark {
+    font-size: 0.82rem;
+    color: rgba(255,255,255,0.55);
+    font-family: 'DM Mono', monospace;
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+  }
+  .remark::before {
+    content: '→';
+    color: var(--sky);
+    flex-shrink: 0;
+  }
+
+  /* ── MECHANISM ── */
+  .mechanism-section { background: var(--warm); }
+
+  .flow-diagram {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin: 2.5rem 0;
+    overflow-x: auto;
+  }
+
+  .flow-node {
+    background: white;
+    border: 1.5px solid var(--border);
+    padding: 1.2rem 1.5rem;
+    min-width: 160px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .flow-node.highlight {
+    background: var(--navy);
+    border-color: var(--navy);
+    color: white;
+  }
+
+  .flow-node .node-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin-bottom: 0.4rem;
+  }
+  .flow-node.highlight .node-label { color: var(--sky); }
+
+  .flow-node .node-title {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--ink);
+  }
+  .flow-node.highlight .node-title { color: white; }
+
+  .flow-arrow {
+    width: 40px;
+    flex-shrink: 0;
+    text-align: center;
+    color: var(--blue);
+    font-size: 1.2rem;
+  }
+
+  .insight-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+
+  .insight-card {
+    background: white;
+    border: 1px solid var(--border);
+    padding: 1.5rem;
+  }
+
+  .insight-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--blue);
+    letter-spacing: 0.1em;
+    margin-bottom: 0.5rem;
+  }
+
+  .insight-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+    color: var(--ink);
+  }
+
+  .insight-body {
+    font-size: 0.82rem;
+    color: var(--muted);
+    line-height: 1.6;
+    font-weight: 300;
+  }
+
+  /* ── EXPERIMENTS ── */
+  .exp-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-top: 2rem;
+  }
+
+  .exp-card {
+    border: 1px solid var(--border);
+    background: white;
+    overflow: hidden;
+  }
+
+  .exp-card-header {
+    background: var(--ink);
+    color: white;
+    padding: 1rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .exp-card-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .exp-card-body {
+    padding: 1.5rem;
+  }
+
+  /* Attention matrix visualization */
+  .attn-row {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+    align-items: center;
+  }
+
+  .attn-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+    width: 3rem;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .attn-matrices {
+    display: flex;
+    gap: 0.5rem;
+    flex: 1;
+  }
+
+  .mini-matrix {
+    width: 60px;
+    height: 60px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(4, 1fr);
+    gap: 1px;
+    background: #ddd;
+    border: 1px solid #ddd;
+  }
+
+  .mini-cell {
+    background: var(--low, #1a1a4a);
+  }
+
+  .matrix-label {
+    text-align: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--muted);
+    margin-top: 0.25rem;
+  }
+
+  .matrix-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* OT-style matrix display */
+  .ot-visual {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-end;
+  }
+
+  /* chart bars */
+  .bar-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.5rem;
+    height: 80px;
+    padding-top: 0.5rem;
+  }
+
+  .bar {
+    flex: 1;
+    border-radius: 2px 2px 0 0;
+    transition: height 1s ease;
+    position: relative;
+  }
+  .bar::after {
+    content: attr(data-val);
+    position: absolute;
+    top: -1.2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.6rem;
+    font-family: 'DM Mono', monospace;
+    color: var(--muted);
+  }
+
+  /* ── APPLICATIONS ── */
+  .app-section { background: white; }
+
+  .app-card {
+    display: grid;
+    grid-template-columns: 3fr 2fr;
+    gap: 3rem;
+    border: 1px solid var(--border);
+    padding: 2rem;
+    margin-top: 1.5rem;
+    align-items: center;
+  }
+
+  .tag {
+    display: inline-block;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.2rem 0.6rem;
+    border-radius: 2px;
+    margin-right: 0.4rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .tag-blue { background: #dbeafe; color: var(--blue); }
+  .tag-gold { background: #fef3c7; color: #92400e; }
+  .tag-green { background: #d1fae5; color: #065f46; }
+
+  /* ── TRANSLATION VIZ ── */
+  .translation-demo {
+    background: var(--navy);
+    border-radius: 0;
+    padding: 2rem;
+    margin: 2rem 0;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .translation-demo::before {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(37,99,235,0.15) 0%, transparent 70%);
+  }
+
+  .trans-pair {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 1rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  .trans-en, .trans-fr {
+    font-family: 'DM Serif Display', serif;
+    font-size: 0.95rem;
+    color: rgba(255,255,255,0.8);
+    font-style: italic;
+  }
+
+  .trans-arrow {
+    text-align: center;
+    font-size: 0.9rem;
+    color: var(--sky);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+  }
+
+  .trans-note {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    color: rgba(255,255,255,0.35);
+    text-align: center;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-top: 1rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Layer progression viz */
+  .layer-prog {
+    display: flex;
+    gap: 1px;
+    margin-top: 1.5rem;
+    align-items: stretch;
+    height: 8px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .layer-prog-fill {
+    background: linear-gradient(90deg, #1d4ed8, var(--sky), var(--gold));
+    animation: progress-fill 2s ease-out forwards;
+    width: 0;
+  }
+
+  @keyframes progress-fill {
+    to { width: 80%; }
+  }
+
+  /* ── FUTURE DIRECTIONS ── */
+  .future-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-top: 2rem;
+  }
+
+  .future-item {
+    border-top: 2px solid var(--border);
+    padding-top: 1.25rem;
+    transition: border-color 0.2s;
+  }
+
+  .future-item:hover { border-color: var(--blue); }
+
+  .future-item-title {
+    font-weight: 500;
+    font-size: 0.95rem;
+    color: var(--ink);
+    margin-bottom: 0.5rem;
+  }
+
+  .future-item-body {
+    font-size: 0.84rem;
+    color: var(--muted);
+    line-height: 1.6;
+    font-weight: 300;
+  }
+
+  /* ── CITATION ── */
+  .citation-section { background: var(--navy); color: white; }
+  .citation-section section { }
+  .citation-section h2 { color: white; }
+  .citation-section .section-label { color: var(--sky); }
+  .citation-section .section-label::before { background: var(--sky); }
+
+  .bibtex-block {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    padding: 1.5rem 2rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.8rem;
+    line-height: 1.8;
+    color: rgba(255,255,255,0.7);
+    position: relative;
+    margin-top: 1.5rem;
+    overflow-x: auto;
+  }
+
+  .bibtex-block .key { color: var(--sky); }
+  .bibtex-block .val { color: var(--gold); }
+  .bibtex-block .type { color: #a78bfa; }
+
+  .copy-btn {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: rgba(255,255,255,0.6);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.3rem 0.7rem;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.2s;
+  }
+  .copy-btn:hover { background: rgba(255,255,255,0.18); color: white; }
+
+  /* ── FOOTER ── */
+  footer {
+    background: #060d16;
+    color: rgba(255,255,255,0.4);
+    padding: 2rem 4rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+  }
+
+  footer a { color: rgba(255,255,255,0.4); text-decoration: none; }
+  footer a:hover { color: rgba(255,255,255,0.7); }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .hero-body > * {
+    opacity: 0;
+    animation: fadeUp 0.7s ease forwards;
+  }
+  .conference-tag { animation-delay: 0.1s; }
+  h1              { animation-delay: 0.25s; }
+  .author-block   { animation-delay: 0.4s; }
+  .cta-row        { animation-delay: 0.55s; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    nav, section, footer { padding-left: 1.5rem; padding-right: 1.5rem; }
+    .hero-body { padding: 2rem 1.5rem; }
+    .hero-footer { padding: 1rem 1.5rem; gap: 1.5rem; }
+    .abstract-section section { grid-template-columns: 1fr; gap: 1.5rem; }
+    .contrib-grid { grid-template-columns: 1fr; }
+    .insight-grid { grid-template-columns: 1fr; }
+    .exp-grid { grid-template-columns: 1fr; }
+    .future-list { grid-template-columns: 1fr; }
+    h1 { font-size: 2rem; }
+    .app-card { grid-template-columns: 1fr; }
+  }
+
+  /* Scroll-triggered fade-in */
+  .fade-in {
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  .fade-in.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <nav>
+    <div class="nav-brand">
+      <span>AISTATS 2026</span>
+      <span class="nav-badge">Spotlight</span>
+    </div>
+    <div class="nav-links">
+      <a href="#abstract">Motivation</a>
+      <a href="#contributions">Results</a>
+      <a href="#mechanism">Idea</a>
+      <!-- <a href="#experiments">Experiments</a> -->
+      <a href="#citation">Cite</a>
+    </div>
+  </nav>
+
+  <div class="hero-body">
+    <div class="conference-tag">AISTATS 2026 · Tangier, Morocco · Spotlight Paper</div>
+    <h1>In-Context Learning for Discrete <em>Optimal Transport</em></h1>
+    <div class="author-block">
+      <div class="author-name">Hadi Daneshmand</div>
+      <div class="author-affil">Department of Computer Science, University of Virginia</div>
+    </div>
+    <div class="cta-row">
+      <a href="https://github.com/hadidaneshmand/aistats26-incontextOT" class="btn btn-primary" target="_blank">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+        Code
+      </a>
+      <a href="https://openreview.net/attachment?id=hwIs2DCYFU&name=pdf" class="btn btn-outline">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Paper (AISTATS26)
+      </a>
+      <a href="https://github.com/hadidaneshmand/aistats26-incontextOT/blob/main/AISTATS2026Poster.pdf" class="btn btn-outline">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        Poster
+      </a>
+      <a href="#" class="btn btn-outline">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        Presentation
+      </a>
+      <a href="https://github.com/hadidaneshmand/aistats26-incontextOT/blob/main/AISTATS2026Presentation.pdf" class="btn btn-gold">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        Slides
+      </a>
+
+    </div>
+  </div>
+</div>
+
+<!-- ABSTRACT -->
+<div class="abstract-section" id="motivation">
+  <section>
+    <div>
+      <div class="section-label fade-in">Motivation</div>
+      <h2 class="fade-in"> How transformers <br>Translate or Sort?</h2>
+    </div>
+    <div class="fade-in">
+      <p class="abstract-text">
+        In-context learning (ICL), an emerging capability of large language models that enables them to perform statistical inference at test time without parameter adaptation. Current theoretical studies of in-context learning often study the mechansim of statistical learning such as supervised learning. We aim to study the mechansim of in-context learning for langauge translation which is more closely aligned with main application of LLMs for NPL.
+         Our study is based on discrete optimal transport theory, namely solving the following linear program [Cuturi 2013]
+        $$ P_\lambda = \arg \min_{P}  \sum_{i=1}^n  \sum_{j=1}^n\| x_i - y_j \|^2 P_{ij} + \lambda\underbrace{\sum_{i=1}^n  \sum_{j=1}^n P_{ij} \log(P_{ij})}_{-\text{entropy regularization}}  \; \text{subject to $P$ is a doubly stochastic matrix}$$ 
+        where \( x_1, y_1, \dots, x_n, y_n \in \mathbb{R}^d \). 
+        OT has many applications from sorting to cell perturbation analysis in Bioinformatics. Here, we show that OT can also be used to explain the internal mechansim of LLMs for tranlsation.
+      </p>
+      <br>
+      <br>
+      <p class="abstract-text">
+       <i> Observation: OT and Translation. </i>The following plot shows the solution of OT ( \( P_0 \)) when \( x_i, y_i\) are word embeddings of English and French words respectively in the first layer of BERT multilingual pre trained model.
+        <div style="text-align: center;">
+          <img src="ot-embeddings.png" alt="ot-embeddings" width="400">
+        </div>
+      </p>
+      <i> Observation: Attention and OT. </i> We observed that attention weights between English and French embeddings converges to the an approximate OT solution across layers of the pretrained model. 
+
+        <div style="text-align: center;">
+          <img src="attention-ot.png" alt="attention-ot" width="600">
+        </div>
+     We aim to explain the above iterative internal mechansim of attentions for langauge translateion. 
+    </div>
+  </section>
+</div>
+
+<hr class="divider">
+
+<!-- CONTRIBUTIONS -->
+<div id="contributions">
+  <section>
+    <div class="section-label fade-in">Contributions</div>
+
+
+    <!-- Theorem -->
+    <div class="theorem-block fade-in" style="margin-top: 2.5rem;">
+      <div class="theorem-label">Theorem — Approximation Bound (informal)</div>
+      <p class="theorem-text">There exists a choice of attention parameters, independent of \( n \) , \( d \), and the input, such that the attention weights at layer \( \ell \) approximate the regularized optimal transport solution \(P_\lambda \) with error: \(O( \frac{\sqrt{n} e^{1/\lambda}}{\sqrt{\ell}}  ) \)</p>
+      <div class="remarks">
+        <div class="remark"> Remark 1: Result holds for <em>all</em> input sizes n while parameters remain frozen</div>
+        <div class="remark">Remark 2: Increasing transformer depth reduces the approximation error</div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<hr class="divider">
+
+<!-- MECHANISM -->
+<div class="mechanism-section" id="mechanism">
+  <section>
+    <div class="section-label fade-in">Idea</div>
+    <h2 class="fade-in">Simulating gradient descent<br>with softmax attention</h2>
+    <p class="abstract-text">
+      We prove that each attention layer can implement one step of gradient descent (with adaptive stepsize) on the dual Lagrangian function of the OT problem. This construction is based on a particular encoding of inputs \( x_i, y_i \) in the word embeddings and a constructive choice of parameters. By inducation, we can prove that several attention layers can simulate several iterations of gradient descent, thereby optimizing the dual program iteratively.
+      <div style="text-align: center;">
+        <img src="dual.png" alt="dual" width="700">
+      </div>
+      In other words, we construct a transformers that can iteratively solve OT. The following plot shows attention weight dynamics in this transformer. 
+      
+      <div style="text-align: center;">
+        <img src="https://github.com/hadidaneshmand/hadidaneshmand.github.io/blob/main/images/icl.gif?raw=true alt="dual" width="300">
+      </div>
+    </p>
+   
+  </section>
+</div>
+
+<hr class="divider">
+
+<!-- EXPERIMENTS -->
+</div>
+
+<hr class="divider">
+
+<!-- APPLICATION
+<div class="app-section" id="applications">
+  <section>
+    <div class="section-label fade-in">Applications</div>
+    <h2 class="fade-in">Impact beyond theory</h2>
+    <div class="app-card fade-in">
+      <div>
+        <div style="margin-bottom: 0.75rem;">
+          <span class="tag tag-blue">Bioinformatics</span>
+          <span class="tag tag-green">Foundation Models</span>
+          <span class="tag tag-gold">Single-Cell</span>
+        </div>
+        <h3 style="font-family: 'DM Serif Display', serif; font-size: 1.3rem; font-weight: 400; margin-bottom: 0.75rem; color: var(--ink);">Cell Perturbation Analysis</h3>
+        <p style="font-size: 0.9rem; color: var(--muted); line-height: 1.7; font-weight: 400;">
+          Adduri et al. [2025] drew upon this work to design a novel transformer architecture for single-cell perturbation analysis — predicting cellular responses to perturbation across diverse biological contexts. The theoretical understanding of OT in transformers directly informed this foundation model design.
+        </p>
+  
+      </div>
+      <div>
+       
+      </div>
+    </div>
+  </section>
+</div> -->
+
+<hr class="divider">
+
+<!-- FUTURE -->
+<div>
+  <section>
+    <div class="section-label fade-in">Open Questions</div>
+    <h2 class="fade-in">Future directions</h2>
+    <div class="future-list fade-in">
+      <div class="future-item">
+        <div class="future-item-title">Depth-efficient guarantees</div>
+        <p class="future-item-body">Current analysis requires O(ε⁻²) depth for O(ε) accuracy, while Sinkhorn needs only O(log 1/ε) iterations. Tightening this gap remains an open problem.</p>
+      </div>
+      <div class="future-item">
+        <div class="future-item-title">Learning with small prompts</div>
+        <p class="future-item-body">A transformer with fixed parameters can solve OT for arbitrary n. What is the minimal n needed during training for the model to learn the assignment task?</p>
+      </div>
+      <div class="future-item">
+        <div class="future-item-title">Prompt engineering theory</div>
+        <p class="future-item-body">We demonstrate the role of prompt engineering for in-context assignment. This suggests a computational expressivity perspective on why prompt engineering works.</p>
+      </div>
+      <div class="future-item">
+        <div class="future-item-title">Generalized cost functions</div>
+        <p class="future-item-body">Can standard softmax attention solve assignment with a general cost function C(xᵢ, yⱼ)? We conjecture that attention combined with feedforward layers can handle general cases.</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<hr class="divider">
+
+<!-- CITATION -->
+<div class="citation-section" id="citation">
+  <section>
+    <div class="section-label">Citation</div>
+    <div class="bibtex-block">
+      <button class="copy-btn" onclick="copyBibtex()">Copy</button>
+      <pre><span class="type">@inproceedings</span>{daneshmand2026incontextOT,
+  <span class="key">title</span>     = {<span class="val">In-Context Learning for Discrete Optimal Transport: Can Transformers Sort?</span>},
+  <span class="key">author</span>    = {<span class="val">Daneshmand, Hadi</span>},
+  <span class="key">booktitle</span> = {<span class="val">Proceedings of the 29th International Conference on Artificial Intelligence and Statistics (AISTATS)</span>},
+  <span class="key">year</span>      = {<span class="val">2026</span>},
+  <span class="key">publisher</span> = {<span class="val">AISTATS 2026</span>}
+}</pre>
+    </div>
+
+    <div style="margin-top: 2rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+      <a href="https://github.com/hadidaneshmand/aistats26-incontextOT" class="btn btn-outline" target="_blank" style="border-color: rgba(255,255,255,0.2); color: rgba(255,255,255,0.7);">GitHub Repository</a>
+      <a href="" class="btn btn-outline" style="border-color: rgba(255,255,255,0.2); color: rgba(255,255,255,0.7);">Contact Author</a>
+    </div>
+
+    <div style="margin-top: 2.5rem; font-size: 0.8rem; color: rgba(255,255,255,0.35); font-family: 'DM Mono', monospace; line-height: 1.8;">
+      <b> Acknowledgements:</b> <br>
+      Funded partially by NSF TRIPODS program (award DMS-2022448).<br>
+      We thank Jacob Andreas and Amir Reiszade for helpful discussions. <br> 
+      The website template and a part of the code is implemented by the assitance of generative AI 
+    </div>
+  </section>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <span>© 2026 Hadi Daneshmand · University of Virginia</span>
+  <span>AISTATS 2026 · Tangier, Morocco · <a href="https://github.com/hadidaneshmand/aistats26-incontextOT" target="_blank">GitHub</a> · <a href="mailto:dhadi@virginia.edu">dhadi at virginia dot edu</a></span>
+</footer>
+
+<script>
+  // Scroll-triggered fade-in
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('visible'); }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+  // Copy bibtex
+  function copyBibtex() {
+    const pre = document.querySelector('.bibtex-block pre');
+    navigator.clipboard.writeText(pre.innerText).then(() => {
+      const btn = document.querySelector('.copy-btn');
+      btn.textContent = 'Copied!';
+      setTimeout(() => btn.textContent = 'Copy', 2000);
+    });
+  }
+</script>
+</body>
+</html>
