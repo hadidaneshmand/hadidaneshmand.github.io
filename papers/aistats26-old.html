@@ -831,120 +831,16 @@
 
   /* ── RESPONSIVE ── */
   @media (max-width: 768px) {
-    /* Base layout */
-    nav { padding: 1rem 1.25rem; flex-wrap: wrap; gap: 0.75rem; }
-    section { padding: 2.5rem 1.25rem; }
-    footer {
-      padding: 1.5rem 1.25rem;
-      flex-direction: column;
-      gap: 0.5rem;
-      text-align: center;
-    }
-
-    /* Nav: stack brand on top, links below */
-    .nav-links {
-      width: 100%;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.75rem 1.25rem;
-      border-top: 1px solid rgba(255,255,255,0.08);
-      padding-top: 0.75rem;
-    }
-    .nav-links a { font-size: 0.8rem; }
-
-    /* Hero */
-    .hero-body { padding: 2rem 1.25rem 1.5rem; }
-    .hero-footer {
-      padding: 1rem 1.25rem;
-      gap: 1.25rem;
-      flex-wrap: wrap;
-    }
-
-    /* Typography */
-    h1 { font-size: clamp(1.7rem, 8vw, 2.4rem); max-width: 100%; }
-    h2 { font-size: clamp(1.4rem, 6vw, 2rem); }
-
-    /* CTA buttons */
-    .cta-row { gap: 0.6rem; }
-    .btn { padding: 0.6rem 1rem; font-size: 0.8rem; }
-
-    /* Section grids → single column */
+    nav, section, footer { padding-left: 1.5rem; padding-right: 1.5rem; }
+    .hero-body { padding: 2rem 1.5rem; }
+    .hero-footer { padding: 1rem 1.5rem; gap: 1.5rem; }
     .abstract-section section { grid-template-columns: 1fr; gap: 1.5rem; }
     .contrib-grid { grid-template-columns: 1fr; }
     .insight-grid { grid-template-columns: 1fr; }
     .exp-grid { grid-template-columns: 1fr; }
     .future-list { grid-template-columns: 1fr; }
+    h1 { font-size: 2rem; }
     .app-card { grid-template-columns: 1fr; }
-    .trans-pair { grid-template-columns: 1fr auto 1fr; gap: 0.5rem; }
-
-    /* Images: never overflow */
-    img {
-      max-width: 100% !important;
-      width: auto !important;
-      height: auto !important;
-    }
-
-    /* MathJax / math formulas: allow horizontal scroll in a contained box */
-    .abstract-text .MathJax,
-    .theorem-text .MathJax,
-    mjx-container,
-    .MathJax_Display {
-      overflow-x: auto !important;
-      overflow-y: hidden !important;
-      max-width: 100% !important;
-    }
-
-    /* Wrap math display blocks so they scroll horizontally */
-    .abstract-text,
-    p.abstract-text {
-      overflow-x: hidden;
-    }
-
-    mjx-container[display="true"] {
-      display: block;
-      overflow-x: auto;
-      padding-bottom: 0.5rem;
-    }
-
-    /* Theorem block */
-    .theorem-block {
-      padding: 1.5rem 1.25rem;
-    }
-
-    /* Bibtex */
-    .bibtex-block {
-      padding: 2.5rem 1rem 1rem;
-      font-size: 0.72rem;
-    }
-    .bibtex-block pre {
-      white-space: pre;
-      overflow-x: auto;
-    }
-
-    /* Flow diagram */
-    .flow-diagram {
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-      padding-bottom: 0.5rem;
-    }
-
-    /* Inline images that have explicit widths */
-    div[style*="text-align: center"] img,
-    p[style*="text-align: center"] img {
-      max-width: 100% !important;
-      width: auto !important;
-    }
-  }
-
-  /* Extra small phones */
-  @media (max-width: 400px) {
-    nav { padding: 0.875rem 1rem; }
-    section { padding: 2rem 1rem; }
-    .hero-body { padding: 1.5rem 1rem 1rem; }
-    .hero-footer { padding: 1rem; }
-    .btn { padding: 0.55rem 0.85rem; font-size: 0.75rem; }
-    .theorem-block { padding: 1.25rem 1rem; }
-    .theorem-text { font-size: 0.95rem; }
   }
 
   /* Scroll-triggered fade-in */
